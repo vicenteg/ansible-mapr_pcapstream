@@ -1,0 +1,16 @@
+{
+  "template": "telco*",
+  "order" : 0,
+  "settings" : {
+
+  },
+  "mappings": {
+    "flows" : {
+      "properties": {
+        "timestampMillis": { "type": "date" },
+        "srcIP": { "type": "ip" },
+        "dstIP": { "type": "ip" }
+      }
+    }
+  }
+}

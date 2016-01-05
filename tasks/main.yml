@@ -1,0 +1,116 @@
+---
+# tasks file for ansible-morgan-pcapstream
+
+- name: disable requiretty for sudo
+  sudo_user: root
+  lineinfile: dest=/etc/sudoers regexp="^Defaults\s+requiretty" line="#Defaults requiretty"
+
+- name: install mapr-spark
+  sudo_user: root
+  yum: name=mapr-spark-{{spark_version}}.{{spark_build}} state=installed
+  environment: proxy_env
+
+- name: install scala
+  sudo_user: root
+  yum: name=http://www.scala-lang.org/files/archive/scala-2.10.3.rpm state=installed
+  environment: proxy_env
+
+- name: download sbt
+  get_url: url=https://dl.bintray.com/sbt/native-packages/sbt/0.13.9/sbt-0.13.9.tgz dest=/tmp validate_certs=False
+  environment: proxy_env
+
+- name: install sbt
+  sudo_user: root
+  command: chdir=/opt tar -vxzf /tmp/sbt-0.13.9.tgz
+
+- name: install inotify-tools
+  sudo_user: root
+  yum: name=inotify-tools state=installed enablerepo=epel
+  environment: proxy_env
+
+- name: install tcpdump
+  sudo_user: root
+  yum: name=tcpdump state=present
+  environment: proxy_env
+
+- name: install git
+  sudo_user: root
+  yum: name=git state=present
+  environment: proxy_env
+
+- name: create /apps
+  sudo_user: root
+  file: state=directory path=/apps mode=0755 owner=mapr group=mapr
+
+- name: unpack supervisor wheelhouse
+  unarchive: src=supervisor-3.2.0-wheelhouse.tar.gz dest=/tmp
+
+- name: install supervisor from wheels
+  sudo_user: root
+  command: pip install --use-wheel --no-index --find-links=/tmp/wheelhouse supervisor
+
+- name: install supervisor init script
+  sudo_user: root
+  copy: src=redhat-init-equeffelec dest=/etc/init.d/supervisor owner=root group=root mode=0755
+
+- name: copy supervisor configuration file
+  sudo_user: root
+  template: src=supervisord.conf.j2 dest=/etc/supervisord.conf owner=root mode=0640
+  notify: supervisord reload
+
+- name: create supervisord log directory
+  sudo_user: root
+  file: state=directory path=/var/log/supervisord
+
+- name: create mapr-pcapstream log directory
+  sudo_user: root
+  file: state=directory path=/var/log/mapr-pcapstream owner=mapr group=mapr
+
+- name: create a link to /usr/bin/supervisord/supervisorctl if RHEL
+  sudo_user: root
+  file: state=link path=/usr/local/bin/{{item}} src=/usr/bin/{{item}} owner=root group=root
+  when: ansible_distribution == "RedHat"
+  with_items:
+    - supervisord
+    - supervisorctl
+
+- name: enable supervisor service
+  sudo_user: root
+  service: name=supervisor enabled=yes state=started
+
+- name: get mapr-pcapstream
+  sudo_user: mapr
+  git: repo=https://github.com/vicenteg/mapr-pcapstream.git dest=/apps/mapr-pcapstream force=yes version=ripe
+  environment: proxy_env
+  register: git_download
+
+- name: update env.sh with ES_HOSTS
+  sudo_user: root
+  lineinfile: dest=/apps/mapr-pcapstream/env.sh regexp="^ES_HOSTS" line="ES_HOSTS={{elasticsearch_hosts}}"
+
+- name: update env.sh with correct spark version
+  sudo_user: root
+  lineinfile: dest=/apps/mapr-pcapstream/env.sh regexp="^SPARK_SUBMIT=" line="SPARK_SUBMIT=/opt/mapr/spark/spark-{{spark_version}}/bin/spark-submit" state=present
+
+- name: ensure lib directory exists
+  sudo_user: mapr
+  file: state=directory path=/apps/mapr-pcapstream/lib
+
+- name: copy hadoop-pcap-lib jar for build
+  sudo_user: mapr
+  copy: src=hadoop-pcap-lib-1.2-SNAPSHOT.jar dest=/apps/mapr-pcapstream/lib/
+
+- name: build mapr-pcapstream
+  sudo_user: mapr
+  command: chdir=/apps/mapr-pcapstream /opt/sbt/bin/sbt clean package
+  environment: proxy_env
+  when: git_download|changed
+
+- name: update env.sh with ES_HOSTS
+  sudo_user: root
+  lineinfile: dest=/apps/mapr-pcapstream/env.sh regexp="^ES_HOSTS" line="ES_HOSTS={{elasticsearch_hosts}}"
+
+- name: create application home dir on MFS
+  sudo_user: mapr
+  file: state=directory path=/apps/pcap owner=ec2-user group=ec2-user mode=0755
+

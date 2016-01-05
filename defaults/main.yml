@@ -1,0 +1,7 @@
+---
+# defaults file for ansible-morgan-pcapstream
+
+proxy_env: { }
+username: ec2-user
+spark_version: 1.5.2
+spark_build: 201512161339-1
