@@ -80,7 +80,7 @@
 
 - name: get mapr-pcapstream
   sudo_user: mapr
-  git: repo=https://github.com/vicenteg/mapr-pcapstream.git dest=/apps/mapr-pcapstream force=yes version=ripe
+  git: repo=https://github.com/vicenteg/mapr-pcapstream.git dest=/apps/mapr-pcapstream force=yes
   environment: proxy_env
   register: git_download
 
