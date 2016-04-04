@@ -80,7 +80,7 @@
 
 - name: get mapr-pcapstream
   sudo_user: mapr
-  git: repo=https://github.com/vicenteg/mapr-pcapstream.git dest=/apps/mapr-pcapstream force=yes version=ripe
+  git: repo=https://github.com/vicenteg/mapr-pcapstream.git dest=/apps/mapr-pcapstream force=yes
   environment: proxy_env
   register: git_download
 
@@ -112,5 +112,5 @@
 
 - name: create application home dir on MFS
   sudo_user: mapr
-  file: state=directory path=/apps/pcap owner=ec2-user group=ec2-user mode=0755
+  file: state=directory path=/mapr/{{cluster_name}}/apps/pcap owner=ec2-user group=ec2-user mode=0755
 
