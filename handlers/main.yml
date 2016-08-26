@@ -2,5 +2,6 @@
 # handlers file for ansible-morgan-pcapstream
 
 - name: supervisord reload
-  sudo_user: root
+  become: yes
+  become_user: root
   command: /usr/local/bin/supervisorctl reload

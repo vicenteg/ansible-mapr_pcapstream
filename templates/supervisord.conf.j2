@@ -21,19 +21,22 @@ serverurl=unix:///tmp/supervisor.sock         ; use a unix:// URL  for a unix so
 
 [program:monitor_and_move]
 user={{username}}
-command=/apps/mapr-pcapstream/monitor_and_move.sh
+environment=CLUSTER_NAME="{{cluster_name}}",USER="{{username}}"
+command=/mapr/{{cluster_name}}/apps/mapr-pcapstream/monitor_and_move.sh
 stderr_logfile = /var/log/mapr-pcapstream/monitor_and_move.err
 stdout_logfile = /var/log/mapr-pcapstream/monitor_and_move.out
 
 [program:run_tcpdump]
 user={{username}}
-command=/apps/mapr-pcapstream/run_tcpdump.sh
+environment=CLUSTER_NAME="{{cluster_name}}",USER="{{username}}"
+command=/mapr/{{cluster_name}}/apps/mapr-pcapstream/run_tcpdump.sh
 stderr_logfile = /var/log/mapr-pcapstream/run_tcpdump.err
 stdout_logfile = /var/log/mapr-pcapstream/run_tcpdump.out
 
 [program:spark_submit]
 user=mapr
-command=/apps/mapr-pcapstream/submit.sh
+environment=CLUSTER_NAME="{{cluster_name}}",USER="{{username}}"
+command=/mapr/{{cluster_name}}/apps/mapr-pcapstream/submit.sh
 stderr_logfile = /var/log/mapr-pcapstream/spark_submit.err
 stdout_logfile = /var/log/mapr-pcapstream/spark_submit.out
 
