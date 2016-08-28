@@ -127,3 +127,10 @@
   become_user: mapr
   file: state=directory path=/mapr/{{cluster_name}}/apps/pcap owner={{app_owner}} group={{app_owner}} mode=0755
 
+- name: copy ES template
+  copy: src=telco_template.json dest=/tmp
+
+- name: POST elasticsearch template for Telco index
+  command: curl -XPUT http://{{groups["elasticsearch"]|first}}:{{elasticsearch_port}}/_template/telco -d@/tmp/telco_template.json
+  run_once: yes
+  

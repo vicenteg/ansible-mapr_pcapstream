@@ -1,0 +1,22 @@
+{
+  "template": "telco*",
+  "order" : 0,
+  "settings" : { },
+  "mappings": {
+    "flows": {
+      "properties": {
+        "dst": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "src": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "timestamp": {
+          "type": "date"
+        }
+      }
+    }
+  }
+}
