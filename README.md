@@ -19,7 +19,7 @@ Example Playbook
 License
 -------
 
-BSD
+Apache
 
 Author Information
 ------------------
