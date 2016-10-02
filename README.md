@@ -19,7 +19,7 @@ Example Playbook
 License
 -------
 
-MIT
+BSD
 
 Author Information
 ------------------
